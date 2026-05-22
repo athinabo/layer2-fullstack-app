@@ -51,7 +51,7 @@ public class OrderController {
     @Operation(summary = "Create an order", description = "Creates a new order for the authenticated user. Requires authentication.")
     @ApiResponse(responseCode = "201", description = "Order created successfully")
     @ApiResponse(responseCode = "400", description = "Invalid order data")
-    public OrderResponseDto create(@RequestBody OrderRequestDto dto, Principal principal) {
+    public OrderResponseDto create(@jakarta.validation.Valid @RequestBody OrderRequestDto dto, Principal principal) {
         return orderMapper.toDto(orderService.createOrder(orderMapper.toEntity(dto), principal.getName()));
     }
 }

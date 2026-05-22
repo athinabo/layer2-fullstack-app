@@ -58,6 +58,16 @@ function handleGetOrderById(id: string): HttpResponse<unknown> {
 
 function handleCreateOrder(body: CreateOrderDto): HttpResponse<unknown> {
     const items = body.items ?? [];
+    const address = body.address;
+
+    if (!address || !address.streetAddress || !address.city || !address.county || !address.country) {
+        return new HttpResponse({
+            status: 400,
+            statusText: 'Bad Request',
+            body: { message: 'Shipping address is required' }
+        });
+    }
+
     const details = items
         .map(item => {
             const product = MOCK_PRODUCTS.find(p => p.id === item.productId);
@@ -87,12 +97,7 @@ function handleCreateOrder(body: CreateOrderDto): HttpResponse<unknown> {
         id: `order-${mockOrderIdCounter++}`,
         userId: MOCK_USERS[0]?.id ?? 'user-1',
         createdAt: new Date().toISOString(),
-        address: {
-            country: 'USA',
-            city: 'Seattle',
-            county: 'King',
-            streetAddress: '123 Pine Street'
-        },
+        address: address,
         details
     };
 
