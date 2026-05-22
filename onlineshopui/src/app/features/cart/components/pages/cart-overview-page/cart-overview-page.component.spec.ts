@@ -177,15 +177,45 @@ describe('CartOverviewPageComponent', () => {
             expect(ordersServiceMock.create).not.toHaveBeenCalled();
         });
 
-        it('should create order and navigate to orders on success', () => {
+        it('should not proceed when address form is invalid', () => {
             // Prepare
             fixture.detectChanges();
+            component.addressForm.reset();
 
             // Action
             component.onCheckout();
 
             // Verify
-            expect(ordersServiceMock.create).toHaveBeenCalled();
+            expect(ordersServiceMock.create).not.toHaveBeenCalled();
+            expect(notificationsServiceMock.notifyError).toHaveBeenCalledWith({
+                title: 'Invalid address',
+                message: 'Please fill in all shipping address fields.'
+            });
+        });
+
+        it('should create order with address and navigate on success', () => {
+            // Prepare
+            fixture.detectChanges();
+            component.addressForm.patchValue({
+                streetAddress: '123 Test St',
+                city: 'TestCity',
+                county: 'TestCounty',
+                country: 'TestCountry'
+            });
+
+            // Action
+            component.onCheckout();
+
+            // Verify
+            expect(ordersServiceMock.create).toHaveBeenCalledWith({
+                items: expect.any(Array),
+                address: {
+                    streetAddress: '123 Test St',
+                    city: 'TestCity',
+                    county: 'TestCounty',
+                    country: 'TestCountry'
+                }
+            });
             expect(cartServiceMock.clear).toHaveBeenCalled();
             expect(notificationsServiceMock.notifySuccess).toHaveBeenCalledWith({
                 title: 'Order placed',
@@ -194,10 +224,38 @@ describe('CartOverviewPageComponent', () => {
             expect(routerMock.navigate).toHaveBeenCalled();
         });
 
+        it('should reset address form after successful order', () => {
+            // Prepare
+            fixture.detectChanges();
+            component.addressForm.patchValue({
+                streetAddress: '123 Test St',
+                city: 'TestCity',
+                county: 'TestCounty',
+                country: 'TestCountry'
+            });
+
+            // Action
+            component.onCheckout();
+
+            // Verify
+            expect(component.addressForm.value).toEqual({
+                streetAddress: null,
+                city: null,
+                county: null,
+                country: null
+            });
+        });
+
         it('should handle checkout failure', () => {
             // Prepare
             ordersServiceMock.create.mockReturnValue(throwError(() => new Error('Failed')));
             fixture.detectChanges();
+            component.addressForm.patchValue({
+                streetAddress: '123 Test St',
+                city: 'TestCity',
+                county: 'TestCounty',
+                country: 'TestCountry'
+            });
 
             // Action
             component.onCheckout();

@@ -7,6 +7,7 @@ import {
     signal
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { take } from 'rxjs';
 import { CartService } from '../../../services/cart.service';
 import { ProductService } from '../../../../products/services/product.service';
@@ -21,10 +22,17 @@ import {
     calculateCartSubtotal,
     toCreateOrderDto
 } from '../../../utils/cart.utils';
+import { AddressDto } from '../../../../../core/types/dtos/location.dto';
 
 @Component({
     selector: 'app-cart-overview-page',
-    imports: [SpinnerComponent, CartItemRowComponent, CartSummaryComponent, RouterLink],
+    imports: [
+        SpinnerComponent,
+        CartItemRowComponent,
+        CartSummaryComponent,
+        RouterLink,
+        ReactiveFormsModule
+    ],
     templateUrl: './cart-overview-page.component.html',
     changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -34,6 +42,7 @@ export class CartOverviewPageComponent implements OnInit {
     private readonly ordersService = inject(OrdersService);
     private readonly router = inject(Router);
     private readonly notificationsService = inject(NotificationsService);
+    private readonly fb = inject(FormBuilder);
 
     readonly cartItems = this.cartService.items;
     readonly products = this.productService.products;
@@ -54,6 +63,13 @@ export class CartOverviewPageComponent implements OnInit {
 
     readonly itemCount = this.cartService.totalItems;
 
+    readonly addressForm: FormGroup = this.fb.group({
+        streetAddress: ['', [Validators.required, Validators.minLength(3)]],
+        city: ['', [Validators.required, Validators.minLength(2)]],
+        county: ['', [Validators.required, Validators.minLength(2)]],
+        country: ['', [Validators.required, Validators.minLength(2)]]
+    });
+
     ngOnInit(): void {
         this.productService.loadAll().pipe(take(1)).subscribe();
     }
@@ -73,7 +89,23 @@ export class CartOverviewPageComponent implements OnInit {
     onCheckout(): void {
         if (this.cartItems().length === 0) return;
 
-        const payload = toCreateOrderDto(this.cartItems());
+        if (this.addressForm.invalid) {
+            this.addressForm.markAllAsTouched();
+            this.notificationsService.notifyError({
+                title: 'Invalid address',
+                message: 'Please fill in all shipping address fields.'
+            });
+            return;
+        }
+
+        const address: AddressDto = {
+            streetAddress: this.addressForm.value.streetAddress,
+            city: this.addressForm.value.city,
+            county: this.addressForm.value.county,
+            country: this.addressForm.value.country
+        };
+
+        const payload = toCreateOrderDto(this.cartItems(), address);
         if (!payload) return;
 
         this.isSubmitting.set(true);
@@ -84,6 +116,7 @@ export class CartOverviewPageComponent implements OnInit {
                 next: () => {
                     this.isSubmitting.set(false);
                     this.cartService.clear();
+                    this.addressForm.reset();
                     this.notificationsService.notifySuccess({
                         title: 'Order placed',
                         message: 'Your order is being processed.'
