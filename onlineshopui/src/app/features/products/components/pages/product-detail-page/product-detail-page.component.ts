@@ -14,12 +14,13 @@ import { ProductService } from '../../../services/product.service';
 import { CartService } from '../../../../cart/services/cart.service';
 import { AppNavRoutes } from '../../../../../core/config/constants/navigation.constants';
 import { NotificationsService } from '../../../../../core/services/notifications.service';
+import { TooltipDirective } from '../../../../../clib/directives/tooltip.directive';
 import { take } from 'rxjs';
 
 @Component({
     selector: 'app-product-detail-page',
     standalone: true,
-    imports: [CardComponent, SpinnerComponent, IconComponent],
+    imports: [CardComponent, SpinnerComponent, IconComponent, TooltipDirective],
     templateUrl: './product-detail-page.component.html',
     changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -39,6 +40,37 @@ export class ProductDetailPageComponent implements OnInit {
         const prod = this.product();
         const qty = this.quantity();
         return prod ? (prod.price * qty).toFixed(2) : '0.00';
+    });
+
+    supplierTooltipContent = computed(() => {
+        const product = this.product();
+        if (!product) return '';
+
+        const supplier = product.supplier;
+        if (!supplier) return '';
+
+        let content = `<div class="tooltip-title">${supplier.name}</div>`;
+
+        if (supplier.contactEmail || supplier.contactPhone) {
+            content += '<div class="tooltip-section">';
+            if (supplier.contactEmail) {
+                content += `📧 ${supplier.contactEmail}<br>`;
+            }
+            if (supplier.contactPhone) {
+                content += `📞 ${supplier.contactPhone}`;
+            }
+            content += '</div>';
+        }
+
+        if (supplier.address) {
+            content += '<div class="tooltip-section">';
+            content += `📍 ${supplier.address.streetAddress}<br>`;
+            content += `${supplier.address.city}, ${supplier.address.county}<br>`;
+            content += `${supplier.address.country}`;
+            content += '</div>';
+        }
+
+        return content;
     });
 
     ngOnInit(): void {
