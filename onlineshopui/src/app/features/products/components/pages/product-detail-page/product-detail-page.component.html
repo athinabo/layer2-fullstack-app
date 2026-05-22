@@ -54,6 +54,17 @@
                             </span>
                         </div>
 
+                        <!-- Supplier Badge with Tooltip -->
+                        <div class="mb-3">
+                            <span
+                                [appTooltip]="supplierTooltipContent()"
+                                tooltipPosition="right"
+                                class="inline-flex items-center px-3 py-1 text-sm font-medium rounded-md bg-surface-2 text-text-muted border border-border cursor-help"
+                            >
+                                Supplier: {{ product()!.supplier.name }}
+                            </span>
+                        </div>
+
                         <!-- Product Name -->
                         <h1 class="text-3xl font-bold text-text mb-4">
                             {{ product()!.name }}
