@@ -12,12 +12,16 @@ public class SupplierMapper {
     private final AddressMapper addressMapper;
 
     public SupplierDto toDto(Supplier supplier) {
+        if (supplier == null) {
+            return null;
+        }
+
         return SupplierDto.builder()
                 .id(supplier.getId())
                 .name(supplier.getName())
                 .contactEmail(supplier.getContactEmail())
                 .contactPhone(supplier.getContactPhone())
-                .address(addressMapper.toDto(supplier.getAddress()))
+                .address(supplier.getAddress() != null ? addressMapper.toDto(supplier.getAddress()) : null)
                 .build();
     }
 }
