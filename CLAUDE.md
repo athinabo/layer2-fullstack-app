@@ -5,7 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Project Overview
 
 This is a fullstack e-commerce application with:
-- **Backend**: Spring Boot 4.0.3 API (`onlineshopapi/`)
+- **Backend**: Spring Boot 4.0.6 API (`onlineshopapi/`)
 - **Frontend**: Angular 21 SPA (`onlineshopui/`)
 - **Database**: PostgreSQL 18
 
@@ -19,6 +19,25 @@ The application supports two user roles (Customer and Administrator) with featur
 - Maven (backend build)
 - Docker & Docker Compose (database)
 
+### Quick Start
+
+Start all services in order:
+
+```bash
+# 1. Start database
+cd docker/development && docker-compose up -d && cd ../..
+
+# 2. Start backend (in new terminal)
+cd onlineshopapi && mvn spring-boot:run -Dspring-boot.run.profiles=local
+
+# 3. Start frontend (in new terminal)
+cd onlineshopui && npm install && npm start
+```
+
+- Backend: http://localhost:3000/api
+- Frontend: http://localhost:4200
+- Swagger UI: http://localhost:3000/api/swagger-ui.html
+
 ### Database Setup
 
 Start PostgreSQL database:
@@ -28,7 +47,7 @@ docker-compose up -d
 ```
 
 Database credentials (local):
-- Host: localhost:5432
+- Host: localhost:5433
 - Database: shopdb
 - User: shopuser
 - Password: shoppassword
@@ -56,6 +75,8 @@ mvn clean install
 mvn test
 ```
 
+**Note:** Backend tests use Testcontainers and require Docker to be running.
+
 **Environment variables required:**
 - `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USERNAME`, `DB_PASSWORD` - Database connection
 - `CORS_ALLOWED_ORIGINS` - Allowed CORS origins (comma-separated)
@@ -70,6 +91,8 @@ For local development, use the `local` profile which has these pre-configured in
 cd onlineshopui
 npm install
 ```
+
+**Note:** This project specifies npm 11.6.1. If you encounter issues, check your npm version with `npm -v`.
 
 **Run development server (with real API):**
 ```bash
@@ -199,3 +222,5 @@ User roles (`ADMIN`, `CUSTOMER`) control access via `@PreAuthorize` annotations 
 - Branch naming: `feat/<task_id>-<short-desc>`
 - Backend uses Lombok - ensure annotation processing is enabled in your IDE
 - Frontend uses Prettier - run `npm run format` before committing
+- Run tests before opening a PR: `mvn test` (backend) and `npm test` (frontend)
+- Commit message format: `<type>: <description>` (e.g., `feat: add product search`, `fix: resolve cart total calculation`)
